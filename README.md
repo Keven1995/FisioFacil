@@ -1,6 +1,6 @@
 # FisioFacil
 
-A aplicação **FisioFacil** tem o objetivo de ofertar serviços de fisioterapia focados nas necessidades iniciais de cada membro. Os serviços são especialmente pensados para serem realizados em casa, proporcionando conveniência e acesso facilitado à fisioterapia.
+A aplicação **FisioFacil** tem o objetivo de ofertar serviços de fisioterapia focados nas necessidades iniciais de cada usuário. Os serviços são especialmente pensados para serem realizados em casa, proporcionando conveniência e acesso facilitado à fisioterapia.
 
 ## Tecnologias Utilizadas
 
