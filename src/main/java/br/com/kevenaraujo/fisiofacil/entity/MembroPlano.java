@@ -1,5 +1,7 @@
 package br.com.kevenaraujo.fisiofacil.entity;
 
+import java.util.List;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,6 +16,10 @@ import lombok.Setter;
 @Entity
 
 public class MembroPlano {
+
+    public static List<MembroPlano> findByPlanoId(Long id) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

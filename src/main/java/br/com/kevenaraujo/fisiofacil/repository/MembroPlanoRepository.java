@@ -10,5 +10,6 @@ import br.com.kevenaraujo.fisiofacil.entity.MembroPlano;
 @Repository
 public interface MembroPlanoRepository extends JpaRepository<MembroPlano, Long> {
     List<MembroPlano> findByMembroId(Long membroId);
+    List<MembroPlano> findByPlanoId(Long planoId);
 }
 
