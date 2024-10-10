@@ -7,5 +7,6 @@ import br.com.kevenaraujo.fisiofacil.entity.Planos;
 
 @Repository
 public interface PlanosRepository extends JpaRepository<Planos, Long> {
+    Planos findByNome(String nome);
 }
 
