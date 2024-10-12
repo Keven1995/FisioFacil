@@ -2,6 +2,8 @@ package br.com.kevenaraujo.fisiofacil.entity;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -22,5 +24,6 @@ public class Categoria {
     private String nome;
 
     @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<Membro> membros;
 }

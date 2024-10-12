@@ -1,6 +1,7 @@
 package br.com.kevenaraujo.fisiofacil.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.kevenaraujo.fisiofacil.dto.PlanoDTO;
 import br.com.kevenaraujo.fisiofacil.entity.Membro;
 import br.com.kevenaraujo.fisiofacil.entity.MembroPlano;
 import br.com.kevenaraujo.fisiofacil.repository.MembroPlanoRepository;
@@ -24,9 +26,14 @@ public class MembroController {
     private MembroPlanoRepository membroPlanoRepository;
 
     @GetMapping("/{membroId}/planos")
-    public List<MembroPlano> listarPlanosDoMembro(@PathVariable Long membroId) {
-        return membroPlanoRepository.findByMembroId(membroId);
-    }
+public List<PlanoDTO> listarPlanosDoMembro(@PathVariable Long membroId) {
+    List<MembroPlano> membroPlanos = membroPlanoRepository.findByMembroId(membroId);
+    
+    // Transformando os MembroPlanos em uma lista de DTOs contendo apenas o nome e descrição dos planos
+    return membroPlanos.stream()
+            .map(mp -> new PlanoDTO(mp.getPlano().getNome(), mp.getPlano().getDescricao()))
+            .collect(Collectors.toList());
+}
 
     @GetMapping("/categoria/{categoriaId}")
     public List<Membro> listarMembrosPorCategoria(@PathVariable Long categoriaId) {

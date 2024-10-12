@@ -1,5 +1,7 @@
 package br.com.kevenaraujo.fisiofacil.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,5 +23,6 @@ public class Membro {
 
     @ManyToOne
     @JoinColumn(name = "categoria_id")
+    @JsonBackReference
     private Categoria categoria;
 }
