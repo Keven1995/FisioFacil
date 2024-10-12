@@ -29,7 +29,6 @@ public class MembroController {
 public List<PlanoDTO> listarPlanosDoMembro(@PathVariable Long membroId) {
     List<MembroPlano> membroPlanos = membroPlanoRepository.findByMembroId(membroId);
     
-    // Transformando os MembroPlanos em uma lista de DTOs contendo apenas o nome e descrição dos planos
     return membroPlanos.stream()
             .map(mp -> new PlanoDTO(mp.getPlano().getNome(), mp.getPlano().getDescricao()))
             .collect(Collectors.toList());

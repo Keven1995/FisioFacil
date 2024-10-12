@@ -1,6 +1,7 @@
 package br.com.kevenaraujo.fisiofacil.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,5 +18,7 @@ public class PlanosService {
         return planoRepository.findAll();
     }
 
-    
+    public Optional<Planos> buscarPorId(Long id) {
+        return planoRepository.findById(id);
+    }
 }
