@@ -2,6 +2,7 @@ package br.com.kevenaraujo.fisiofacil.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,20 +39,27 @@ public class UsuarioController {
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         // Buscar o usuário pelo email
         Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail());
-    
+
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Usuário não encontrado"));
         }
-    
+
         // Validar a senha
         boolean senhaValida = usuarioService.validarSenha(loginRequest.getPassword(), usuario.getSenha());
-    
+
         if (!senhaValida) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Senha inválida"));
         }
-    
-        // Retornar um objeto JSON com mensagem de sucesso
-        return ResponseEntity.ok(Map.of("message", "Login bem-sucedido"));
+
+        // Gerar um "token" simples, neste caso, um UUID aleatório
+        String token = UUID.randomUUID().toString();
+
+        // Retornar o token e o nome do usuário
+        return ResponseEntity.ok(Map.of(
+            "message", "Login bem-sucedido",
+            "token", token,  // Token simples, pode ser uma chave única ou ID
+            "userName", usuario.getNomeUsuario()  // Nome do usuário
+        ));
     }
 
     // Método para listar todos os usuários
