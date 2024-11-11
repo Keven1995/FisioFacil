@@ -20,7 +20,7 @@ import br.com.kevenaraujo.fisiofacil.repository.UsuarioRepository;
 import br.com.kevenaraujo.fisiofacil.service.UsuarioService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5174")
+@CrossOrigin(origins = "http://frontend:3000")
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
 
