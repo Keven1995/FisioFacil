@@ -6,7 +6,6 @@ import br.com.kevenaraujo.fisiofacil.entity.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-    // Método para buscar um usuário pelo email
 
     Usuario findByEmail( String email);
 

@@ -15,7 +15,6 @@ public class UsuarioService {
     private UsuarioRepository usuarioRepository;
 
     public Usuario salvarUsuario(Usuario usuario) {
-        // Salva o usuário sem hash da senha
         return usuarioRepository.save(usuario);
     }
 
@@ -28,11 +27,9 @@ public class UsuarioService {
     }
 
     public boolean validarSenha(String senhaDigitada, String senhaArmazenada) {
-        // Verifica se a senha digitada é nula ou vazia
         if (senhaDigitada == null || senhaDigitada.isEmpty()) {
             throw new IllegalArgumentException("Senha digitada não pode ser nula ou vazia");
         }
-        // Compara a senha digitada com a senha armazenada
         return senhaDigitada.equals(senhaArmazenada);
     }
     

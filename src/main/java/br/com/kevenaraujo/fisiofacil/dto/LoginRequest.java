@@ -4,10 +4,9 @@ public class LoginRequest {
     private String email;
     private String password;
 
-    // Construtor
+
     public LoginRequest() {}
 
-    // Getters e Setters
     public String getEmail() {
         return email;
     }

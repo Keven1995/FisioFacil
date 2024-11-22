@@ -30,7 +30,6 @@ public class UsuarioController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // Endpoint para cadastro
     @PostMapping("/signup")
     public ResponseEntity<String> cadastrarUsuario(@RequestBody Usuario usuario) {
         Usuario novoUsuario = usuarioService.salvarUsuario(usuario);
@@ -39,32 +38,27 @@ public class UsuarioController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        // Buscar o usuário pelo email
         Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail());
 
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Usuário não encontrado"));
         }
 
-        // Validar a senha
         boolean senhaValida = usuarioService.validarSenha(loginRequest.getPassword(), usuario.getSenha());
 
         if (!senhaValida) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Senha inválida"));
         }
 
-        // Gerar um "token" simples, neste caso, um UUID aleatório
         String token = UUID.randomUUID().toString();
 
-        // Retornar o token e o nome do usuário
         return ResponseEntity.ok(Map.of(
             "message", "Login bem-sucedido",
-            "token", token,  // Token simples, pode ser uma chave única ou ID
-            "userName", usuario.getNomeUsuario()  // Nome do usuário
+            "token", token, 
+            "userName", usuario.getNomeUsuario() 
         ));
     }
 
-    // Método para listar todos os usuários
     @GetMapping("/listar")
     public ResponseEntity<List<Usuario>> listarTodosUsuarios() {
         List<Usuario> usuarios = usuarioService.listarTodosUsuarios();

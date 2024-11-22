@@ -36,10 +36,9 @@ public class PagamentoController {
             String descricao = "Plano: " + plano.get().getNome() + ", Membro: " + membro.get().getNome();
             PagamentoResponseDTO response = new PagamentoResponseDTO(descricao);
 
-            // Se for o plano Plus, retornar a lista de membros por categoria
             if (plano.get().getNome().equalsIgnoreCase("Plus")) {
-                List<Membro> membrosSuperiores = membroService.listarMembrosPorCategoria(1L); // Categoria 1: Membros Superiores
-                List<Membro> membrosInferiores = membroService.listarMembrosPorCategoria(2L); // Categoria 2: Membros Inferiores
+                List<Membro> membrosSuperiores = membroService.listarMembrosPorCategoria(1L); 
+                List<Membro> membrosInferiores = membroService.listarMembrosPorCategoria(2L);
 
                 response.setMembrosSuperiores(membrosSuperiores);
                 response.setMembrosInferiores(membrosInferiores);

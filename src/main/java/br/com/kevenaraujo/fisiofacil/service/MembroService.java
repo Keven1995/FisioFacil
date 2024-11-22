@@ -14,8 +14,6 @@ public class MembroService {
 
     @Autowired
     private MembroRepository membroRepository;
-
-    // Método que busca os membros de uma categoria específica
     public List<Membro> listarMembrosPorCategoria(Long categoriaId) {
         return membroRepository.findByCategoriaId(categoriaId);
     }

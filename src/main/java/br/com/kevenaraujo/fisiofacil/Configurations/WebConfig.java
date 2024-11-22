@@ -11,9 +11,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://frontend:3000") // Restrito ao frontend local
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Incluído OPTIONS
-                .allowedHeaders("*") // Permitir todos os cabeçalhos
+                .allowedOrigins("https://fisio-facil-front-end.vercel.app") 
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") 
+                .allowedHeaders("*")
                 .allowCredentials(true);
     }
 }
