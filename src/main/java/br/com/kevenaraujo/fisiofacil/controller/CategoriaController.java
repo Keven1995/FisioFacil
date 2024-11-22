@@ -13,7 +13,8 @@ import br.com.kevenaraujo.fisiofacil.repository.CategoriaRepository;
 
 @RestController
 @RequestMapping("/api/categorias")
-@CrossOrigin(origins = "http://frontend:3000")
+@CrossOrigin(origins = "https://fisio-facil-front-end.vercel.app")
+
 public class CategoriaController {
 
     @Autowired

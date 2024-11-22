@@ -16,7 +16,7 @@ import br.com.kevenaraujo.fisiofacil.service.PlanosService;
 
 @RestController
 @RequestMapping("/api/planos")
-@CrossOrigin(origins = "http://frontend:3000")
+@CrossOrigin(origins = "https://fisio-facil-front-end.vercel.app")
 public class PlanosController {
 
     @Autowired
