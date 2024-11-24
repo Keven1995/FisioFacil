@@ -18,7 +18,7 @@ import br.com.kevenaraujo.fisiofacil.service.MembroService;
 
 @RestController
 @RequestMapping("/api/membros")
-@CrossOrigin(origins = "https://fisio-facil-front-end.vercel.app")
+@CrossOrigin(origins = "https://fisio-facil-front-nas6pg7kr-keven1995s-projects.vercel.app")
 
 public class MembroController {
 

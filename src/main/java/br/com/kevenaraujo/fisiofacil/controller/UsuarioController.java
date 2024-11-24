@@ -20,7 +20,7 @@ import br.com.kevenaraujo.fisiofacil.repository.UsuarioRepository;
 import br.com.kevenaraujo.fisiofacil.service.UsuarioService;
 
 @RestController
-@CrossOrigin(origins = "https://fisio-facil-front-end.vercel.app")
+@CrossOrigin(origins = "https://fisio-facil-front-nas6pg7kr-keven1995s-projects.vercel.app")
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
 
