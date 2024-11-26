@@ -39,25 +39,29 @@ public class UsuarioController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail());
-
+    
         if (usuario == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Usuário não encontrado"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "Usuário não encontrado"));
         }
-
+    
         boolean senhaValida = usuarioService.validarSenha(loginRequest.getPassword(), usuario.getSenha());
-
+    
         if (!senhaValida) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Senha inválida"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "Senha inválida"));
         }
-
+    
+        // Use um token gerado aleatoriamente para este contexto
         String token = UUID.randomUUID().toString();
-
+    
         return ResponseEntity.ok(Map.of(
             "message", "Login bem-sucedido",
-            "token", token, 
-            "userName", usuario.getNomeUsuario() 
+            "token", token,
+            "userName", usuario.getNomeUsuario()
         ));
     }
+    
 
     @GetMapping("/listar")
     public ResponseEntity<List<Usuario>> listarTodosUsuarios() {

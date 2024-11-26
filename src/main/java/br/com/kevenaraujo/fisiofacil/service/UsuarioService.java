@@ -27,10 +27,8 @@ public class UsuarioService {
     }
 
     public boolean validarSenha(String senhaDigitada, String senhaArmazenada) {
-        if (senhaDigitada == null || senhaDigitada.isEmpty()) {
-            throw new IllegalArgumentException("Senha digitada não pode ser nula ou vazia");
-        }
-        return senhaDigitada.equals(senhaArmazenada);
+        return senhaDigitada != null && senhaDigitada.equals(senhaArmazenada);
     }
+    
     
 }
