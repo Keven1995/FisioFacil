@@ -1,5 +1,7 @@
 package br.com.kevenaraujo.fisiofacil.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -32,5 +34,13 @@ public class Usuario {
     private java.time.LocalDateTime criadoEm = java.time.LocalDateTime.now();
 
     private java.time.LocalDateTime atualizadoEm = java.time.LocalDateTime.now();
+
+    // Token para redefinição de senha
+    @Column(name = "reset_token", unique = true)
+    private String resetToken;
+
+    // Data de expiração do token
+    @Column(name = "reset_token_expiration")
+    private LocalDateTime resetTokenExpiration;
     
 }

@@ -1,7 +1,9 @@
 package br.com.kevenaraujo.fisiofacil.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +41,9 @@ public class UsuarioController {
         }
 
         // Verificar campos obrigatórios
-        if (usuario.getEmail() == null || usuario.getEmail().isEmpty() ||
-                usuario.getSenha() == null || usuario.getSenha().isEmpty() ||
-                usuario.getNomeUsuario() == null || usuario.getNomeUsuario().isEmpty()) {
+        if (usuario.getEmail() == null || usuario.getEmail().isEmpty()
+                || usuario.getSenha() == null || usuario.getSenha().isEmpty()
+                || usuario.getNomeUsuario() == null || usuario.getNomeUsuario().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "Todos os campos são obrigatórios"));
         }
@@ -89,4 +91,54 @@ public class UsuarioController {
         List<Usuario> usuarios = usuarioService.listarTodosUsuarios();
         return ResponseEntity.ok(usuarios);
     }
+
+    @PostMapping("/esqueci-senha")
+    public ResponseEntity<?> esqueciSenha(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+
+        Usuario usuario = usuarioRepository.findByEmail(email);
+
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Usuário não encontrado"));
+        }
+
+        // Gerar token de redefinição de senha
+        String token = UUID.randomUUID().toString();
+        usuario.setResetToken(token);
+        usuario.setResetTokenExpiration(LocalDateTime.now().plusHours(1));
+        usuarioRepository.save(usuario);
+
+        // Enviar e-mail com o link de redefinição de senha
+        String resetLink = "https://fisio-facil-front.vercel.app/reset-password?token=" + token;
+        usuarioService.enviarEmail(usuario.getEmail(), "Redefinição de Senha",
+                "Clique no link para redefinir sua senha: " + resetLink);
+
+        return ResponseEntity.ok(Map.of("message", "E-mail de redefinição de senha enviado"));
+    }
+
+    @PostMapping("/redefinir-senha")
+    public ResponseEntity<?> redefinirSenha(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
+        String novaSenha = request.get("novaSenha");
+
+        // Buscar usuário pelo token usando Optional
+        Optional<Usuario> usuarioOptional = usuarioRepository.findByResetToken(token);
+
+        if (usuarioOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Token inválido ou expirado"));
+        }
+
+        Usuario usuario = usuarioOptional.get();
+
+        // Atualizar a senha do usuário
+        usuario.setSenha(usuarioService.criptografarSenha(novaSenha));
+        usuario.setResetToken(null); // Limpar o token após redefinição
+        usuario.setResetTokenExpiration(null);
+        usuarioRepository.save(usuario);
+
+        return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso"));
+    }
+
 }
