@@ -31,37 +31,58 @@ public class UsuarioController {
     private UsuarioRepository usuarioRepository;
 
     @PostMapping("/signup")
-    public ResponseEntity<String> cadastrarUsuario(@RequestBody Usuario usuario) {
-        Usuario novoUsuario = usuarioService.salvarUsuario(usuario);
-        return ResponseEntity.ok("Usuário cadastrado com sucesso com ID: " + novoUsuario.getId());
+    public ResponseEntity<?> cadastrarUsuario(@RequestBody Usuario usuario) {
+        // Verificar se o e-mail já está cadastrado
+        if (usuarioRepository.findByEmail(usuario.getEmail()) != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "E-mail já cadastrado"));
+        }
+
+        // Verificar campos obrigatórios
+        if (usuario.getEmail() == null || usuario.getEmail().isEmpty() ||
+                usuario.getSenha() == null || usuario.getSenha().isEmpty() ||
+                usuario.getNomeUsuario() == null || usuario.getNomeUsuario().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Todos os campos são obrigatórios"));
+        }
+
+        try {
+            Usuario novoUsuario = usuarioService.salvarUsuario(usuario);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Usuário cadastrado com sucesso",
+                    "userId", novoUsuario.getId()));
+        } catch (Exception e) {
+            // Log do erro para análise
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Erro ao cadastrar usuário"));
+        }
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail());
-    
+
         if (usuario == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("message", "Usuário não encontrado"));
+                    .body(Map.of("message", "Usuário não encontrado"));
         }
-    
+
         boolean senhaValida = usuarioService.validarSenha(loginRequest.getPassword(), usuario.getSenha());
-    
+
         if (!senhaValida) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("message", "Senha inválida"));
+                    .body(Map.of("message", "Senha inválida"));
         }
-    
+
         // Use um token gerado aleatoriamente para este contexto
         String token = UUID.randomUUID().toString();
-    
+
         return ResponseEntity.ok(Map.of(
-            "message", "Login bem-sucedido",
-            "token", token,
-            "userName", usuario.getNomeUsuario()
-        ));
+                "message", "Login bem-sucedido",
+                "token", token,
+                "userName", usuario.getNomeUsuario()));
     }
-    
 
     @GetMapping("/listar")
     public ResponseEntity<List<Usuario>> listarTodosUsuarios() {
