@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,8 +17,6 @@ import br.com.kevenaraujo.fisiofacil.service.PlanosService;
 
 @RestController
 @RequestMapping("/api/pagamento")
-@CrossOrigin(origins = "https://fisio-facil-front-nas6pg7kr-keven1995s-projects.vercel.app")
-
 public class PagamentoController {
 
     @Autowired

@@ -9,7 +9,6 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +21,6 @@ import br.com.kevenaraujo.fisiofacil.repository.UsuarioRepository;
 import br.com.kevenaraujo.fisiofacil.service.UsuarioService;
 
 @RestController
-@CrossOrigin(origins = "https://fisio-facil-front-nas6pg7kr-keven1995s-projects.vercel.app")
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
 
@@ -94,6 +92,7 @@ public class UsuarioController {
 
     @PostMapping("/esqueci-senha")
     public ResponseEntity<?> esqueciSenha(@RequestBody Map<String, String> request) {
+        System.out.println("Requisição recebida de: " + request.get("email"));
         String email = request.get("email");
 
         Usuario usuario = usuarioRepository.findByEmail(email);
