@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -139,5 +140,24 @@ public class UsuarioController {
 
         return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso"));
     }
+
+    @RestController
+@RequestMapping("/test")
+public class TestEnvController {
+    @Value("${EMAIL_USERNAME}")
+    private String emailUsername;
+
+    @Value("${EMAIL_PASSWORD}")
+    private String emailPassword;
+
+    @GetMapping("/env")
+    public ResponseEntity<Map<String, String>> testEnv() {
+        return ResponseEntity.ok(Map.of(
+            "EMAIL_USERNAME", emailUsername,
+            "EMAIL_PASSWORD", emailPassword
+        ));
+    }
+}
+
 
 }
