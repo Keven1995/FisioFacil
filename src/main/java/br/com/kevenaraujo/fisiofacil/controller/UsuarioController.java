@@ -1,19 +1,22 @@
 package br.com.kevenaraujo.fisiofacil.controller;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.kevenaraujo.fisiofacil.dto.LoginRequest;
@@ -25,21 +28,22 @@ import br.com.kevenaraujo.fisiofacil.service.UsuarioService;
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
+
     @Autowired
     private UsuarioService usuarioService;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    // Cadastrar usuário com validações e verificação de e-mail
     @PostMapping("/signup")
     public ResponseEntity<?> cadastrarUsuario(@RequestBody Usuario usuario) {
-        // Verificar se o e-mail já está cadastrado
         if (usuarioRepository.findByEmail(usuario.getEmail()) != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("message", "E-mail já cadastrado"));
         }
 
-        // Verificar campos obrigatórios
         if (usuario.getEmail() == null || usuario.getEmail().isEmpty()
                 || usuario.getSenha() == null || usuario.getSenha().isEmpty()
                 || usuario.getNomeUsuario() == null || usuario.getNomeUsuario().isEmpty()) {
@@ -53,13 +57,13 @@ public class UsuarioController {
                     "message", "Usuário cadastrado com sucesso",
                     "userId", novoUsuario.getId()));
         } catch (Exception e) {
-            // Log do erro para análise
-            e.printStackTrace();
+            logger.error("Erro ao cadastrar usuário", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Erro ao cadastrar usuário"));
         }
     }
 
+    // Login com validação de senha e criação de token
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail());
@@ -76,7 +80,6 @@ public class UsuarioController {
                     .body(Map.of("message", "Senha inválida"));
         }
 
-        // Use um token gerado aleatoriamente para este contexto
         String token = UUID.randomUUID().toString();
 
         return ResponseEntity.ok(Map.of(
@@ -86,14 +89,27 @@ public class UsuarioController {
     }
 
     @GetMapping("/listar")
-    public ResponseEntity<List<Usuario>> listarTodosUsuarios() {
-        List<Usuario> usuarios = usuarioService.listarTodosUsuarios();
-        return ResponseEntity.ok(usuarios);
-    }
+public ResponseEntity<Map<String, Object>> listarTodosUsuarios(@RequestParam(defaultValue = "0") int page,
+                                                              @RequestParam(defaultValue = "10") int size) {
+    // Altere de List<Usuario> para Page<Usuario>
+    Page<Usuario> pageResult = usuarioService.listarUsuariosComPaginacao(page, size);
 
+    // A resposta inclui os dados da página, como o total de usuários, total de páginas e a lista de usuários
+    Map<String, Object> response = Map.of(
+        "usuarios", pageResult.getContent(), // getContent() retorna a lista de usuários
+        "totalPages", pageResult.getTotalPages(), // Número total de páginas
+        "totalUsers", pageResult.getTotalElements() // Número total de usuários
+    );
+    
+    return ResponseEntity.ok(response);
+}
+
+    
+
+
+    // Esqueci a senha - Envio de e-mail assíncrono
     @PostMapping("/esqueci-senha")
     public ResponseEntity<?> esqueciSenha(@RequestBody Map<String, String> request) {
-        System.out.println("Requisição recebida de: " + request.get("email"));
         String email = request.get("email");
 
         Usuario usuario = usuarioRepository.findByEmail(email);
@@ -103,61 +119,44 @@ public class UsuarioController {
                     .body(Map.of("message", "Usuário não encontrado"));
         }
 
-        // Gerar token de redefinição de senha
         String token = UUID.randomUUID().toString();
         usuario.setResetToken(token);
         usuario.setResetTokenExpiration(LocalDateTime.now().plusHours(1));
         usuarioRepository.save(usuario);
 
-        // Enviar e-mail com o link de redefinição de senha
-        String resetLink = "https://fisio-facil-front.vercel.app/reset-password?token=" + token;
-        usuarioService.enviarEmail(usuario.getEmail(), "Redefinição de Senha",
-                "Clique no link para redefinir sua senha: " + resetLink);
+        enviarEmailAsync(usuario, token);
 
         return ResponseEntity.ok(Map.of("message", "E-mail de redefinição de senha enviado"));
     }
 
+    // Enviar e-mail assíncrono
+    @Async
+    public void enviarEmailAsync(Usuario usuario, String token) {
+        String resetLink = "https://fisio-facil-front.vercel.app/reset-password?token=" + token;
+        usuarioService.enviarEmail(usuario.getEmail(), "Redefinição de Senha",
+                "Clique no link para redefinir sua senha: " + resetLink);
+    }
+
+    // Redefinir senha
     @PostMapping("/redefinir-senha")
     public ResponseEntity<?> redefinirSenha(@RequestBody Map<String, String> request) {
         String token = request.get("token");
         String novaSenha = request.get("novaSenha");
 
-        // Buscar usuário pelo token usando Optional
         Optional<Usuario> usuarioOptional = usuarioRepository.findByResetToken(token);
 
-        if (usuarioOptional.isEmpty()) {
+        if (usuarioOptional.isEmpty() || usuarioOptional.get().getResetTokenExpiration().isBefore(LocalDateTime.now())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", "Token inválido ou expirado"));
         }
 
         Usuario usuario = usuarioOptional.get();
 
-        // Atualizar a senha do usuário
         usuario.setSenha(usuarioService.criptografarSenha(novaSenha));
-        usuario.setResetToken(null); // Limpar o token após redefinição
+        usuario.setResetToken(null);
         usuario.setResetTokenExpiration(null);
         usuarioRepository.save(usuario);
 
         return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso"));
     }
-
-    @RestController
-@RequestMapping("/test")
-public class TestEnvController {
-    @Value("${EMAIL_USERNAME}")
-    private String emailUsername;
-
-    @Value("${EMAIL_PASSWORD}")
-    private String emailPassword;
-
-    @GetMapping("/env")
-    public ResponseEntity<Map<String, String>> testEnv() {
-        return ResponseEntity.ok(Map.of(
-            "EMAIL_USERNAME", emailUsername,
-            "EMAIL_PASSWORD", emailPassword
-        ));
-    }
-}
-
-
 }

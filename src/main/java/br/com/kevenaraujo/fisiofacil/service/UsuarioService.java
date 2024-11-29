@@ -5,10 +5,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.stereotype.Service;
 
 import br.com.kevenaraujo.fisiofacil.entity.Usuario;
 import br.com.kevenaraujo.fisiofacil.repository.UsuarioRepository;
@@ -89,5 +92,10 @@ public class UsuarioService {
 
     public String criptografarSenha(String senha) {
         return BCrypt.hashpw(senha, BCrypt.gensalt());
+    }
+
+    public Page<Usuario> listarUsuariosComPaginacao(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return usuarioRepository.findAll(pageable);
     }
 }
