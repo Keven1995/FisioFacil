@@ -16,11 +16,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(authorize -> authorize
+                .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/**").permitAll()
-            )
-            .csrf(csrf -> csrf.disable()) // Desabilita CSRF
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())); // Habilita CORS
+                )
+                .csrf(csrf -> csrf.disable()) // Desabilita CSRF
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())); // Habilita CORS
 
         return http.build();
     }
@@ -28,8 +28,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        // Permitir apenas a origem do frontend (Vercel)
         configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(List.of("*"));
+        // Permitir métodos específicos
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(List.of("*"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
