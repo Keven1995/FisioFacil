@@ -1,14 +1,20 @@
-# Use uma imagem do OpenJDK
-FROM openjdk:17-jdk-slim
-
-# Define o diretório de trabalho
+FROM maven:3.9.9-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copia o arquivo JAR do Spring Boot gerado para o container
-COPY target/fisiofacil-0.0.1-SNAPSHOT.jar app.jar
+COPY pom.xml ./
+COPY .mvn ./.mvn
+COPY mvnw ./
+RUN chmod +x mvnw
+RUN ./mvnw -q -DskipTests dependency:go-offline
 
-# Expõe a porta que a aplicação Spring Boot irá utilizar
+COPY src ./src
+RUN ./mvnw -q -DskipTests package
+
+FROM eclipse-temurin:17-jre-jammy
+WORKDIR /app
+
+COPY --from=build /app/target/fisiofacil-0.0.1-SNAPSHOT.jar app.jar
+
 EXPOSE 8080
 
-# Comando para executar a aplicação
 ENTRYPOINT ["java", "-jar", "app.jar"]
