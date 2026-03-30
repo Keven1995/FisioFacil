@@ -51,4 +51,8 @@ public class Usuario {
     public void preUpdate() {
         atualizadoEm = LocalDateTime.now();
     }
+
+    public Long getId() {
+        return id;
+    }
 }
