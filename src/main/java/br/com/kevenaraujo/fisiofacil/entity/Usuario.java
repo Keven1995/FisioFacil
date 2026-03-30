@@ -2,11 +2,14 @@ package br.com.kevenaraujo.fisiofacil.entity;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,22 +28,27 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String senha;
 
     @Column(nullable = false)
     private String nomeUsuario;
 
     @Column(updatable = false)
-    private java.time.LocalDateTime criadoEm = java.time.LocalDateTime.now();
+    private LocalDateTime criadoEm = LocalDateTime.now();
 
-    private java.time.LocalDateTime atualizadoEm = java.time.LocalDateTime.now();
+    private LocalDateTime atualizadoEm = LocalDateTime.now();
 
-    // Token para redefinição de senha
     @Column(name = "reset_token", unique = true)
+    @JsonIgnore
     private String resetToken;
 
-    // Data de expiração do token
     @Column(name = "reset_token_expiration")
+    @JsonIgnore
     private LocalDateTime resetTokenExpiration;
-    
+
+    @PreUpdate
+    public void preUpdate() {
+        atualizadoEm = LocalDateTime.now();
+    }
 }

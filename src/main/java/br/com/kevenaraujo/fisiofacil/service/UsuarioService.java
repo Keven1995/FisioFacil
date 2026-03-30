@@ -1,19 +1,22 @@
 package br.com.kevenaraujo.fisiofacil.service;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import br.com.kevenaraujo.fisiofacil.entity.Usuario;
+import br.com.kevenaraujo.fisiofacil.exception.EmailSendException;
 import br.com.kevenaraujo.fisiofacil.repository.UsuarioRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -21,41 +24,36 @@ import jakarta.mail.internet.MimeMessage;
 @Service
 public class UsuarioService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private static final Logger logger = LoggerFactory.getLogger(UsuarioService.class);
 
-    @Autowired
-    private JavaMailSender mailSender;
+    private final UsuarioRepository usuarioRepository;
+    private final JavaMailSender mailSender;
+    private final PasswordEncoder passwordEncoder;
+
+    public UsuarioService(
+            UsuarioRepository usuarioRepository,
+            JavaMailSender mailSender,
+            PasswordEncoder passwordEncoder) {
+        this.usuarioRepository = usuarioRepository;
+        this.mailSender = mailSender;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public Usuario salvarUsuario(Usuario usuario) {
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         return usuarioRepository.save(usuario);
     }
 
-    public Usuario buscarPorEmail(String email) {
+    public Usuario atualizarUsuario(Usuario usuario) {
+        return usuarioRepository.save(usuario);
+    }
+
+    public Optional<Usuario> buscarPorEmail(String email) {
         return usuarioRepository.findByEmail(email);
     }
 
-    public List<Usuario> listarTodosUsuarios() {
-        return usuarioRepository.findAll();
-    }
-
     public boolean validarSenha(String senhaDigitada, String senhaArmazenada) {
-        return senhaDigitada != null && senhaDigitada.equals(senhaArmazenada);
-    }
-
-    /**
-     * Gera um token de redefinição de senha para o usuário e o salva no banco.
-     */
-    public String gerarTokenRedefinicaoSenha(String email) {
-        Usuario usuario = buscarPorEmail(email);
-        if (usuario == null) {
-            throw new IllegalArgumentException("Usuário não encontrado para o e-mail fornecido.");
-        }
-
-        String token = UUID.randomUUID().toString();
-        usuario.setResetToken(token);
-        usuarioRepository.save(usuario);
-        return token;
+        return senhaDigitada != null && passwordEncoder.matches(senhaDigitada, senhaArmazenada);
     }
 
     public void enviarEmail(String destinatario, String assunto, String mensagem) {
@@ -64,34 +62,34 @@ public class UsuarioService {
             MimeMessageHelper helper = new MimeMessageHelper(mail, true);
             helper.setTo(destinatario);
             helper.setSubject(assunto);
-            helper.setText(mensagem, true); // Aceita HTML no conteúdo
-
+            helper.setText(mensagem, true);
             mailSender.send(mail);
         } catch (MessagingException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Erro ao enviar o e-mail.");
+            logger.error("Erro ao enviar e-mail para {}", destinatario, e);
+            throw new EmailSendException("Erro ao enviar o e-mail.");
         }
+    }
+
+    @Async
+    public void enviarEmailRedefinicaoAsync(Usuario usuario, String frontResetBaseUrl) {
+        String token = UUID.randomUUID().toString();
+        usuario.setResetToken(token);
+        usuario.setResetTokenExpiration(LocalDateTime.now().plusHours(1));
+        usuarioRepository.save(usuario);
+
+        String resetLink = frontResetBaseUrl + "?token=" + token;
+        enviarEmail(
+                usuario.getEmail(),
+                "Redefinicao de Senha",
+                "Clique no link para redefinir sua senha: " + resetLink);
     }
 
     public Optional<Usuario> buscarPorToken(String token) {
         return usuarioRepository.findByResetToken(token);
     }
 
-    public void redefinirSenha(String token, String novaSenha) {
-        Optional<Usuario> usuarioOptional = buscarPorToken(token);
-
-        if (usuarioOptional.isEmpty()) {
-            throw new IllegalArgumentException("Token inválido ou expirado.");
-        }
-
-        Usuario usuario = usuarioOptional.get();
-        usuario.setSenha(criptografarSenha(novaSenha));
-        usuario.setResetToken(null); // Remove o token após o uso
-        usuarioRepository.save(usuario);
-    }
-
     public String criptografarSenha(String senha) {
-        return BCrypt.hashpw(senha, BCrypt.gensalt());
+        return passwordEncoder.encode(senha);
     }
 
     public Page<Usuario> listarUsuariosComPaginacao(int page, int size) {
